@@ -65,9 +65,9 @@ sub make_psgi_handler {
             $res = OK $res;
         }
 
-        # if (my $headers = $context->headers) {
-        #     push @{$res->[1]}, ref $headers eq 'HASH' ? %$headers : @$headers;
-        # }
+        if (my $headers = $context->headers) {
+            push @{$res->[1]}, ref $headers eq 'HASH' ? %$headers : @$headers;
+        }
 
         unless (@{$res->[1]}) {
             @{$res->[1]} = $class->default_headers;
