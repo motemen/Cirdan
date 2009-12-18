@@ -1,23 +1,19 @@
-use strict;
-use warnings;
+#!perl
 use lib 'lib';
-use Cirdan 'mt';
+use Cirdan;
+use Cirdan::View 'mt';
 
-use Plack::Request;
-sub Cirdan::request_class { 'Plack::Request' }
-
-GET '/' => *index;
+ANY '/' => *index;
 
 sub index {
     my ($req) = @_;
-    OK mt \*DATA, title => 'index';
+    mt *DATA, title => 'index';
 }
 
-sub { Cirdan->dispatch(Cirdan->request_class->new(shift)) };
+__PSGI__
 
 __DATA__
-? local %_ =  @_;
+? local %_ = @_;
 <html>
 ?= $_{title};
-unko
 </html>
