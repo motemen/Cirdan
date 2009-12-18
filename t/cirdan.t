@@ -21,6 +21,6 @@ sub post_bar { '&post_bar' }
 
 is     scalar @{Cirdan->router->routes}, 4;
 isa_ok +Cirdan->router, 'Cirdan::Router';
-is     +Cirdan->path_for('post_bar'), '/bar';
+is     path_for('post_bar'), '/bar';
 
 done_testing;

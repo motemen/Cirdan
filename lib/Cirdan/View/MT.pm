@@ -2,6 +2,7 @@ package Cirdan::View::MT;
 use Any::Moose;
 use Text::MicroTemplate qw(build_mt);
 use Text::MicroTemplate::File;
+use Encode;
 
 has 'mtf', (
     is  => 'rw',
@@ -21,9 +22,9 @@ sub render {
     if (ref $template eq 'GLOB' || ref \$template eq 'GLOB') {
         my $renderer = $RENDERER_CACHE{0 + *{$template}{IO}}
             ||= build_mt(do { local $/; scalar <$template> });
-        return $renderer->(@args)->as_string;
+        return encode utf8 => $renderer->(@args)->as_string;
     } else {
-        return $self->mtf->render_file($template, @args)->as_string;
+        return encode utf8 => $self->mtf->render_file($template, @args)->as_string;
     }
 }
 
