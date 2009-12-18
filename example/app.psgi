@@ -4,7 +4,8 @@ use Cirdan;
 use Cirdan::View 'mt';
 
 POST '/entry' => *post_entry;
-ANY  '/' => *index;
+ANY  '/'      => *index;
+ANY  qr//     => sub { NOT_FOUND };
 
 my @entries;
 
