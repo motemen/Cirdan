@@ -3,12 +3,13 @@ use strict;
 use warnings;
 use Cirdan::Router;
 use Cirdan::Util::Response;
+use Cirdan::Context;
 
 use UNIVERSAL::require;
 use Exporter::Lite ();
 
 our @EXPORT = (
-    qw(GET POST ANY __PSGI__ path_for set_cookie redirect),
+    qw(GET POST ANY __PSGI__ path_for req),
     @Cirdan::Util::Response::EXPORT
 );
 
@@ -19,7 +20,11 @@ sub import {
 }
 
 sub request_class { 'Plack::Request' }
-sub view { 'Cirdan::View' }
+
+sub view    { 'Cirdan::View' }
+sub context { 'Cirdan::Context' }
+
+sub default_headers { 'Content-Type' => 'text/html; charset=utf-8' }
 
 sub router { our $Router ||= Cirdan::Router->new }
 
@@ -39,54 +44,36 @@ sub _make_routing_function {
 *POST = _make_routing_function('POST');
 *ANY  = _make_routing_function(undef);
 
-sub set_cookie {
-    my ($name, $val) = @_;
-
-    require CGI::Simple::Cookie;
-
-    push @{ __PACKAGE__->context->{additional_headers} }, 
-         Set_Cookie => CGI::Simple::Cookie->new(
-             -name    => $name,
-             -value   => $val->{value},
-             -expires => $val->{expires},
-             -domain  => $val->{domain},
-             -path    => $val->{path},
-             -secure  => ( $val->{secure} || 0 )
-         )->as_string;
-}
-
-sub redirect {
-    my ($url) = @_;
-    FOUND [ Location => $url ], '';
-}
+sub req { __PACKAGE__->context->request(@_) }
 
 sub __compile {
     my $class = shift;
     $class->request_class->require or die $@;
 }
 
-our $Context;
-
-sub context { $Context }
-
 sub make_psgi_handler {
     my $class = shift;
 
     return sub {
         my $env = shift;
+        my $context = $class->context;
 
-        local $Context = {};
+        $context->request($class->request_class->new($env));
 
-        my $req = $class->request_class->new($env);
-        my $res = $class->dispatch($req);
-
+        my $res = $class->dispatch($context->request);
         unless (ref $res eq 'ARRAY') {
             $res = OK $res;
         }
 
-        if ($Context->{additional_headers}) {
-            push @{$res->[1]}, @{$Context->{additional_headers}};
+        # if (my $headers = $context->headers) {
+        #     push @{$res->[1]}, ref $headers eq 'HASH' ? %$headers : @$headers;
+        # }
+
+        unless (@{$res->[1]}) {
+            @{$res->[1]} = $class->default_headers;
         }
+
+        $context->clear;
 
         $res;
     };

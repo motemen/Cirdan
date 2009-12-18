@@ -1,10 +1,12 @@
 package Cirdan::Util::Response;
 use strict;
 use warnings;
+use Cirdan::Context;
 use Exporter::Lite;
 use HTTP::Status;
 
 our @EXPORT = qw(
+    set_cookie redirect
     OK CREATED
     MOVED_PERMANENTLY FOUND
     BAD_REQUEST UNAUTHORIZED FORBIDDEN NOT_FOUND METHOD_NOT_ALLOWED
@@ -23,7 +25,7 @@ sub _make_response_function {
             $content = $status_code . ' ' . status_message($status_code);
         }
 
-        return [ $status_code, $headers, [ $content ] ];
+        [ $status_code, $headers, [ $content ] ];
     };
 }
 
@@ -32,6 +34,29 @@ foreach my $constant (@HTTP::Status::EXPORT) {
     no strict 'refs';
     *{ __PACKAGE__ . "::$name" } = _make_response_function(&{"HTTP::Status::$constant"});
     push @EXPORT_OK, $name;
+}
+
+sub set_cookie {
+    my ($name, $val) = @_;
+
+    require CGI::Simple::Cookie;
+
+    Cirdan::Context->headers([]) unless Cirdan::Context->headers;
+
+    push @{ Cirdan::Context->headers },
+         'Set-Cookie' => CGI::Simple::Cookie->new(
+             -name    => $name,
+             -value   => $val->{value},
+             -expires => $val->{expires},
+             -domain  => $val->{domain},
+             -path    => $val->{path},
+             -secure  => ( $val->{secure} || 0 )
+         )->as_string;
+}
+
+sub redirect {
+    my ($url) = @_;
+    FOUND([ Location => $url ], '');
 }
 
 1;

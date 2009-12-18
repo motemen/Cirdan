@@ -7,7 +7,7 @@ ANY '/' => *index;
 
 sub index {
     my ($req) = @_;
-    mt *DATA, title => 'index';
+    OK mt *DATA, title => 'index';
 }
 
 __PSGI__
