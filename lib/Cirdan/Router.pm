@@ -34,7 +34,7 @@ sub path_for {
     my ($self, $name, @args) = @_;
 
     foreach my $entry (@{$self->routes}) {
-        if ($entry->name eq $name) {
+        if ($entry->name && $entry->name eq $name) {
             my $path = $entry->path;
             # XXX ...
             while (@args) {
