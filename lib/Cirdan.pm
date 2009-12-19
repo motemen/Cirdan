@@ -20,29 +20,42 @@ sub import {
 }
 
 sub request_class { 'Plack::Request' }
+sub default_headers { 'Content-Type' => 'text/html; charset=utf-8' }
 
 sub view    { 'Cirdan::View' }
 sub context { 'Cirdan::Context' }
-
-sub default_headers { 'Content-Type' => 'text/html; charset=utf-8' }
-
-sub router { our $Router ||= Cirdan::Router->new }
+sub router  { our $Router ||= Cirdan::Router->new }
 
 sub dispatch { shift->router->dispatch(@_) }
-
 sub path_for { __PACKAGE__->router->path_for(@_) }
 
-sub _make_routing_function {
-    my $method = shift;
-    return sub {
-        my ($path, $code) = @_;
-        __PACKAGE__->router->add($path, $method, $code);
-    };
+{
+    sub _make_routing_function {
+        my $method = shift;
+        return sub {
+            my ($path, $code) = @_;
+            __PACKAGE__->router->add($path, $method, $code);
+        };
+    }
+
+    *GET  = _make_routing_function('GET');
+    *POST = _make_routing_function('POST');
+    *ANY  = _make_routing_function(undef);
 }
 
-*GET  = _make_routing_function('GET');
-*POST = _make_routing_function('POST');
-*ANY  = _make_routing_function(undef);
+sub _finalize_res_headers {
+    my ($class, $res) = @_;
+
+    my $res_headers = $res->[1];
+
+    unless (@$res_headers) {
+        @$res_headers = $class->default_headers;
+    }
+
+    if (my $headers = $class->context->headers) {
+        push @$res_headers, ref $headers eq 'HASH' ? %$headers : @$headers;
+    }
+}
 
 sub __compile {
     my $class = shift;
@@ -59,21 +72,11 @@ sub make_psgi_handler {
         my $req = $context->request = $class->request_class->new($env);
 
         my $res = $class->dispatch($req);
-
-        unless (ref $res eq 'ARRAY') {
-            $res = OK $res;
-        }
-
-        if (my $headers = $context->headers) {
-            push @{$res->[1]}, ref $headers eq 'HASH' ? %$headers : @$headers;
-        }
-
-        unless (@{$res->[1]}) {
-            @{$res->[1]} = $class->default_headers;
-        }
+        $res = OK $res unless ref $res eq 'ARRAY';
 
         $context->clear;
 
+        $class->_finalize_res_headers($res);
         $res;
     };
 }
