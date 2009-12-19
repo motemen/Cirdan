@@ -1,6 +1,8 @@
 Cirdan
 ======
 
+Chord の弱ぱくりです
+
 Synopsis
 --------
     use Cirdan; # Exports routing functions, response functions
