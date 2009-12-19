@@ -67,16 +67,15 @@ sub make_psgi_handler {
 
     return sub {
         my $env = shift;
-        my $context = $class->context;
 
-        my $req = $context->request = $class->request_class->new($env);
+        my $req = $class->context->request = $class->request_class->new($env);
 
         my $res = $class->dispatch($req);
         $res = OK $res unless ref $res eq 'ARRAY';
 
-        $context->clear;
-
         $class->_finalize_res_headers($res);
+        $class->context->clear;
+
         $res;
     };
 }
