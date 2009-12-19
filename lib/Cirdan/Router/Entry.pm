@@ -39,6 +39,7 @@ has 'method_mapping', (
 
 sub _build_name {
     my $self = shift;
+    return unless ref \$self->code eq 'GLOB';
     *{$self->code}{NAME};
 }
 
