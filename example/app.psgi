@@ -22,7 +22,6 @@ sub post_entry {
 sub entry {
     my ($req, $id) = @_;
     my $entry = $entries[$id];
-
     mt *DATA, entry => $entry;
 }
 

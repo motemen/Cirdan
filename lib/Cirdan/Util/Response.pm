@@ -4,6 +4,7 @@ use warnings;
 use Cirdan::Context;
 use Exporter::Lite;
 use HTTP::Status;
+use CGI::Simple::Cookie;
 
 our @EXPORT = qw(
     set_cookie redirect
@@ -39,19 +40,19 @@ foreach my $constant (@HTTP::Status::EXPORT) {
 sub set_cookie {
     my ($name, $val) = @_;
 
-    require CGI::Simple::Cookie;
+    Cirdan::Context->headers ||= [];
 
-    Cirdan::Context->headers([]) unless Cirdan::Context->headers;
+    # from Plack::Response
+    my $cookie = CGI::Simple::Cookie->new(
+        -name    => $name,
+        -value   => $val->{value},
+        -expires => $val->{expires},
+        -domain  => $val->{domain},
+        -path    => $val->{path},
+        -secure  => ( $val->{secure} || 0 )
+    );
 
-    push @{ Cirdan::Context->headers },
-         'Set-Cookie' => CGI::Simple::Cookie->new(
-             -name    => $name,
-             -value   => $val->{value},
-             -expires => $val->{expires},
-             -domain  => $val->{domain},
-             -path    => $val->{path},
-             -secure  => ( $val->{secure} || 0 )
-         )->as_string;
+    push @{ Cirdan::Context->headers }, 'Set-Cookie' => $cookie->as_string;
 }
 
 sub redirect {

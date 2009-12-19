@@ -19,7 +19,7 @@ sub add {
 }
 
 sub dispatch {
-    my ($self, $req, @args) = @_;
+    my ($self, $req) = @_;
 
     my $path = $req->uri->path;
     foreach my $entry (@{$self->routes}) {

@@ -56,8 +56,7 @@ sub make_psgi_handler {
         my $env = shift;
         my $context = $class->context;
 
-        my $req = $class->request_class->new($env);
-        $context->request($req);
+        my $req = $context->request = $class->request_class->new($env);
 
         my $res = $class->dispatch($req);
 

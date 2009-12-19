@@ -7,7 +7,7 @@ our @Symbols = qw(request headers route);
 sub __compile {
     foreach my $symbol (@Symbols) {
         no strict 'refs';
-        *{ __PACKAGE__ . "::$symbol" } = sub {
+        *{ __PACKAGE__ . "::$symbol" } = sub : lvalue {
             my $class = shift;
             ${"$class\::$symbol"} = shift if @_;
             ${"$class\::$symbol"};
