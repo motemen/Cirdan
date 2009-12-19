@@ -9,7 +9,7 @@ use UNIVERSAL::require;
 use Exporter::Lite ();
 
 our @EXPORT = (
-    qw(GET POST ANY __PSGI__ path_for req),
+    qw(GET POST ANY __PSGI__ path_for),
     @Cirdan::Util::Response::EXPORT
 );
 
@@ -44,8 +44,6 @@ sub _make_routing_function {
 *POST = _make_routing_function('POST');
 *ANY  = _make_routing_function(undef);
 
-sub req { __PACKAGE__->context->request(@_) }
-
 sub __compile {
     my $class = shift;
     $class->request_class->require or die $@;
@@ -58,9 +56,11 @@ sub make_psgi_handler {
         my $env = shift;
         my $context = $class->context;
 
-        $context->request($class->request_class->new($env));
+        my $req = $class->request_class->new($env);
+        $context->request($req);
 
-        my $res = $class->dispatch($context->request);
+        my $res = $class->dispatch($req);
+
         unless (ref $res eq 'ARRAY') {
             $res = OK $res;
         }

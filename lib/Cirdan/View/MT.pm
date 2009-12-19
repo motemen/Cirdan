@@ -2,7 +2,7 @@ package Cirdan::View::MT;
 use Any::Moose;
 use Text::MicroTemplate qw(build_mt);
 use Text::MicroTemplate::File;
-use Encode;
+use Encode qw(is_utf8 _utf8_off);
 
 has 'mtf', (
     is  => 'rw',
@@ -19,13 +19,21 @@ my %RENDERER_CACHE;
 sub render {
     my ($self, $template, @args) = @_;
 
+    my $content;
     if (ref $template eq 'GLOB' || ref \$template eq 'GLOB') {
         my $renderer = $RENDERER_CACHE{0 + *{$template}{IO}}
             ||= build_mt(do { local $/; scalar <$template> });
-        return encode utf8 => $renderer->(@args)->as_string;
+        $content = $renderer->(@args)->as_string;
     } else {
-        return encode utf8 => $self->mtf->render_file($template, @args)->as_string;
+        $content = $self->mtf->render_file($template, @args)->as_string;
     }
+
+    _utf8_off $content if is_utf8 $content;
+
+    $content;
 }
+
+# XXX
+*path_for = \&Cirdan::path_for;
 
 1;

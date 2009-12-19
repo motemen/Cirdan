@@ -1,25 +1,21 @@
 package Cirdan::Router;
 use strict;
-use warnings;
 use Any::Moose;
+use Cirdan::Router::Entry;
+use Cirdan::Context;
 
 has 'routes', (
     is  => 'rw',
-    isa => 'ArrayRef',
+    isa => 'ArrayRef[Cirdan::Router::Entry]',
     default => sub { +[] },
 );
 
 sub add {
     my ($self, $path, $method, $code) = @_;
 
-    my $entry = { path => $path, code => $code };
-    $entry->{regexp} = ref $entry->{path} ? $entry->{path} : qr/^$entry->{path}$/;
-    $entry->{method} =
-        !$method || $method eq '*' || $method eq '_' ? undef :
-        ref $method eq 'ARRAY' ? +{ map { uc $_ => 1 } @$method } :
-        +{ uc $method => 1 };
-
-    push @{$self->routes}, $entry;
+    push @{$self->routes}, Cirdan::Router::Entry->new(
+        path => $path, method => $method, code => $code,
+    );
 }
 
 sub dispatch {
@@ -27,19 +23,24 @@ sub dispatch {
 
     my $path = $req->uri->path;
     foreach my $entry (@{$self->routes}) {
-        next if $entry->{method} && !$entry->{method}->{uc $req->method};
-        next unless $path =~ $entry->{regexp};
-        return $entry->{code}->($req, @args);
+        next unless $entry->handles_method($req->method);
+        my (undef, @params) = $entry->handles_uri($req->uri) or next;
+        Cirdan::Context->route($entry);
+        return $entry->code->($req, @params);
     }
 }
 
 sub path_for {
-    my ($self, $name) = @_;
+    my ($self, $name, @args) = @_;
 
     foreach my $entry (@{$self->routes}) {
-        if (ref \$entry->{code} eq 'GLOB'
-                && *{$entry->{code}}{NAME} eq $name) {
-            return $entry->{path};
+        if ($entry->name eq $name) {
+            my $path = $entry->path;
+            # XXX ...
+            while (@args) {
+                $path =~ s{\(.+?\)}{ shift @args }e;
+            }
+            return $path;
         }
     }
 }

@@ -3,9 +3,10 @@ use lib 'lib';
 use Cirdan;
 use Cirdan::View 'mt';
 
-POST '/entry' => *post_entry;
-ANY  '/'      => *index;
-ANY  qr//     => sub { NOT_FOUND };
+POST qq</entry>       => *post_entry;
+ANY  q </entry/(\d+)> => *entry;
+ANY  qq</>            => *index;
+ANY  qr<>             => sub { NOT_FOUND };
 
 my @entries;
 
@@ -14,13 +15,20 @@ sub post_entry {
     my $text = $req->param('text');
     return BAD_REQUEST unless length $text;
 
-    unshift @entries, $text;
+    push @entries, $text;
     redirect path_for('index');
+}
+
+sub entry {
+    my ($req, $id) = @_;
+    my $entry = $entries[$id];
+
+    mt *DATA, entry => $entry;
 }
 
 sub index {
     my $req = shift;
-    mt *DATA, title => 'index', entries => \@entries;
+    mt *DATA, entries => \@entries;
 }
 
 __PSGI__
@@ -28,16 +36,20 @@ __PSGI__
 __DATA__
 ? local %_ = @_;
 <html>
-<head><title><?= $_{title} ?></title></head>
-<body>
-<form action="<?= Cirdan::path_for('post_entry') ?>" method="POST">
-<input type="text" name="text">
-<input type="submit">
-</form>
-<ul>
-? foreach (@{$_{entries}}) {
-<li><?= $_ ?></li>
+  <head><title><?= Cirdan->context->route->name ?></title></head>
+  <body>
+? if (Cirdan->context->route->name eq 'entry') {
+    <div><?= $_{entry} ?></div>
+? } else {
+    <form action="<?= path_for('post_entry') ?>" method="POST">
+      <input type="text" name="text">
+      <input type="submit">
+    </form>
+    <ul>
+?   foreach (0 .. $#{$_{entries}}) {
+      <li><a href="<?= path_for('entry', $_) ?>"><?= $_{entries}[$_] ?></a></li>
+?   }
 ? }
-</ul>
-</body>
+    </ul>
+  </body>
 </html>

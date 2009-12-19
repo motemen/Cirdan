@@ -18,10 +18,10 @@ sub post_bar { '&post_bar' }
 
 is scalar @{$router->routes}, 4;
 
-is +$router->dispatch(http::GET  '/foo'), 'GET /foo';
-is +$router->dispatch(http::POST '/foo'), 'ANY /';
-is +$router->dispatch(http::POST '/bar'), '&post_bar';
+is $router->dispatch(http::GET  '/foo'), 'GET /foo';
+is $router->dispatch(http::POST '/foo'), 'ANY /';
+is $router->dispatch(http::POST '/bar'), '&post_bar';
 
-is +$router->path_for('post_bar'), '/bar';
+is $router->path_for('post_bar'), '/bar';
 
 done_testing;
