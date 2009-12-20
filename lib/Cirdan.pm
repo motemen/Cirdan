@@ -31,8 +31,6 @@ sub view    { 'Cirdan::View' }
 sub context { 'Cirdan::Context' }
 sub router  { our $Router ||= Cirdan::Router->new }
 
-sub dispatch { shift->router->dispatch(@_) }
-
 sub routes (&) {
     my $block = shift;
     my $pkg   = caller;
@@ -71,7 +69,7 @@ sub make_psgi_handler {
         my $env = shift;
         my $req = $class->context->request = $class->request_class->new($env);
 
-        my $res = $class->dispatch($req);
+        my $res = $class->router->dispatch($req);
         $res = OK $res unless ref $res eq 'ARRAY';
 
         $class->_finalize_res_headers($res);

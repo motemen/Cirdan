@@ -7,7 +7,7 @@ use HTTP::Status;
 use CGI::Simple::Cookie;
 
 our @EXPORT = qw(
-    set_cookie redirect
+    set_cookie set_header redirect
     OK CREATED
     MOVED_PERMANENTLY FOUND
     BAD_REQUEST UNAUTHORIZED FORBIDDEN NOT_FOUND METHOD_NOT_ALLOWED
@@ -37,10 +37,13 @@ foreach my $constant (@HTTP::Status::EXPORT) {
     push @EXPORT_OK, $name;
 }
 
+sub set_header {
+    Cirdan::Context->headers ||= [];
+    push @{ Cirdan::Context->headers }, @_;
+}
+
 sub set_cookie {
     my ($name, $val) = @_;
-
-    Cirdan::Context->headers ||= [];
 
     # from Plack::Response
     my $cookie = CGI::Simple::Cookie->new(
@@ -52,7 +55,7 @@ sub set_cookie {
         -secure  => ( $val->{secure} || 0 )
     );
 
-    push @{ Cirdan::Context->headers }, 'Set-Cookie' => $cookie->as_string;
+    set_header 'Set-Cookie' => $cookie->as_string;
 }
 
 sub redirect {
