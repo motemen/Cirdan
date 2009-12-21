@@ -35,12 +35,7 @@ sub path_for {
 
     foreach my $entry (@{$self->routes}) {
         if ($entry->name && $entry->name eq $name) {
-            my $path = $entry->path;
-            # XXX ...
-            while (@args) {
-                $path =~ s{\(.+?\)}{ shift @args }e;
-            }
-            return $path;
+            return $entry->make_path(@args);
         }
     }
 }
@@ -48,8 +43,9 @@ sub path_for {
 sub make_routing_function {
     my ($self, $method) = @_;
     return sub {
-        my ($path, $code) = @_;
-        $self->add($path, $method, $code);
+        my $code = pop;
+        my @path = @_;
+        $self->add(@path > 1 ? \@path : $path[0], $method, $code);
     };
 }
 

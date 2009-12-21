@@ -4,10 +4,10 @@ use Cirdan;
 use Cirdan::View 'mt';
 
 routes {
-    POST q </entry>       => *post_entry;
-    ANY  q </entry/(\d+)> => *entry;
-    ANY  q </>            => *index;
-    ANY  qr<>             => sub { NOT_FOUND };
+    POST q </entry>           => *post_entry;
+    ANY  q </entry/>, qr<\d+> => *entry;
+    ANY  q </>                => *index;
+    ANY  qr<>                 => sub { NOT_FOUND };
 };
 
 my @entries;
