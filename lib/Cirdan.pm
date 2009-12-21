@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use Cirdan::Router;
 use Cirdan::Context;
+use Cirdan::View;
 use Cirdan::Util::Response;
 
 use UNIVERSAL::require;
@@ -27,7 +28,11 @@ sub import {
 sub request_class { 'Plack::Request' }
 sub default_headers { 'Content-Type' => 'text/html; charset=utf-8' }
 
-sub view    { 'Cirdan::View' }
+sub view {
+    my $class = shift;
+    Cirdan::View->impl(@_);
+}
+
 sub context { 'Cirdan::Context' }
 sub router  { our $Router ||= Cirdan::Router->new }
 

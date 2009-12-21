@@ -1,6 +1,13 @@
 package Cirdan::View;
-use strict;
-use warnings;
+use Any::Moose;
+
+has 'content_type', (
+    is  => 'rw',
+    isa => 'Maybe[Str]',
+    default => sub { },
+);
+
+use Cirdan::Util::Response qw(set_header);
 
 our %Impl;
 
@@ -25,7 +32,12 @@ sub implant_renderer {
     foreach my $name (@names) {
         no strict 'refs';
         my $impl = $class->impl($name);
-        *{"$pkg\::$name"} = sub { $impl->render(@_) };
+        *{"$pkg\::$name"} = sub {
+            if (my $content_type = $impl->content_type) {
+                set_header 'Content-Type' => $content_type;
+            }
+            $impl->render(@_);
+        };
     }
 }
 

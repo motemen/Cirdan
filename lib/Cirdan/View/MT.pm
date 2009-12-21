@@ -1,14 +1,17 @@
 package Cirdan::View::MT;
 use Any::Moose;
-use Text::MicroTemplate qw(build_mt);
-use Text::MicroTemplate::File;
-use Encode qw(is_utf8 _utf8_off);
+
+extends 'Cirdan::View';
 
 has 'mtf', (
     is  => 'rw',
     isa => 'Text::MicroTemplate::File',
     lazy_build => 1,
 );
+
+use Text::MicroTemplate qw(build_mt);
+use Text::MicroTemplate::File;
+use Encode qw(is_utf8 _utf8_off);
 
 sub _build_mtf {
     Text::MicroTemplate::File->new;

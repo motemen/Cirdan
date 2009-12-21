@@ -1,14 +1,18 @@
 #!perl
 use lib 'lib';
 use Cirdan;
-use Cirdan::View 'mt';
+use Cirdan::View qw(mt json);
 
 routes {
     POST q </entry>           => *post_entry;
     ANY  q </entry/>, qr<\d+> => *entry;
-    ANY  q </>                => *index;
+    ANY  q </>,               => *index;
+    ANY  q </index>,          => *index;
+    ANY  q </index.json>      => *index_json;
     ANY  qr<>                 => sub { NOT_FOUND };
 };
+
+# Cirdan->view('mt')->content_type('text/plain');
 
 my @entries;
 
@@ -30,6 +34,11 @@ sub entry {
 sub index {
     my $req = shift;
     mt *DATA, entries => \@entries;
+}
+
+sub index_json {
+    my $req = shift;
+    json \@entries;
 }
 
 __PSGI__
