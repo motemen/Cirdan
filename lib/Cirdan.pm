@@ -2,8 +2,8 @@ package Cirdan;
 use strict;
 use warnings;
 use Cirdan::Router;
-use Cirdan::Util::Response;
 use Cirdan::Context;
+use Cirdan::Util::Response;
 
 use UNIVERSAL::require;
 use Exporter::Lite ();
@@ -67,7 +67,6 @@ sub make_psgi_handler {
 
     return sub {
         my $env = shift;
-
         my $req = $class->context->request = $class->request_class->new($env);
 
         my $res = $class->dispatch($req);
