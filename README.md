@@ -7,10 +7,12 @@ Synopsis
 --------
     use Cirdan; # Exports routing functions, response functions
 
-    POST q'/entry'       => *post_entry; # Specify path as string, handler as typeglob
-    GET  q'/entry/(\d+)' => *entry;
-    ANY  q'/'            => *index;
-    ANY  qr//            => sub { NOT_FOUND }; # Specify path as regexp, handler as coderef
+    routes {
+        POST q'/entry'       => *post_entry; # Specify path as string, handler as typeglob
+        GET  q'/entry/(\d+)' => *entry;
+        ANY  q'/'            => *index;
+        ANY  qr//            => sub { NOT_FOUND }; # Specify path as regexp, handler as coderef
+    };
 
     sub post_entry {
         ...
