@@ -16,4 +16,9 @@ is  $e2->name, 'post_bar';
 ok !$e3->name;
 ok !$e4->name;
 
+ok  $e1->handles_method('GET');
+ok !$e1->handles_method('POST');
+ok  $e3->handles_method('GET');
+ok  $e3->handles_method('POST');
+
 done_testing;

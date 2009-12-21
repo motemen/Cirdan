@@ -9,11 +9,16 @@ use UNIVERSAL::require;
 use Exporter::Lite ();
 
 our @EXPORT = (
-    qw(GET POST ANY __PSGI__ path_for),
+    qw(__PSGI__ routes),
     @Cirdan::Util::Response::EXPORT
 );
 
 sub import {
+    my $pkg = caller;
+    eval qq{
+        package $pkg;
+        use subs qw(GET POST ANY)
+    };
     strict->import;
     warnings->import;
     goto \&Exporter::Lite::import;
@@ -27,20 +32,17 @@ sub context { 'Cirdan::Context' }
 sub router  { our $Router ||= Cirdan::Router->new }
 
 sub dispatch { shift->router->dispatch(@_) }
-sub path_for { __PACKAGE__->router->path_for(@_) }
 
-{
-    sub _make_routing_function {
-        my $method = shift;
-        return sub {
-            my ($path, $code) = @_;
-            __PACKAGE__->router->add($path, $method, $code);
-        };
-    }
+sub routes (&) {
+    my $block = shift;
+    my $pkg   = caller;
 
-    *GET  = _make_routing_function('GET');
-    *POST = _make_routing_function('POST');
-    *ANY  = _make_routing_function(undef);
+    no strict 'refs';
+    local *{"$pkg\::GET"}  = __PACKAGE__->router->make_routing_function('GET');
+    local *{"$pkg\::POST"} = __PACKAGE__->router->make_routing_function('POST');
+    local *{"$pkg\::ANY"}  = __PACKAGE__->router->make_routing_function(undef);
+
+    $block->();
 }
 
 sub _finalize_res_headers {

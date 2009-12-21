@@ -3,10 +3,12 @@ use lib 'lib';
 use Cirdan;
 use Cirdan::View 'mt';
 
-POST qq</entry>       => *post_entry;
-ANY  q </entry/(\d+)> => *entry;
-ANY  qq</>            => *index;
-ANY  qr<>             => sub { NOT_FOUND };
+routes {
+    POST q </entry>       => *post_entry;
+    ANY  q </entry/(\d+)> => *entry;
+    ANY  q </>            => *index;
+    ANY  qr<>             => sub { NOT_FOUND };
+};
 
 my @entries;
 
@@ -16,7 +18,7 @@ sub post_entry {
     return BAD_REQUEST unless length $text;
 
     push @entries, $text;
-    redirect path_for('index');
+    redirect +Cirdan->router->path_for('index');
 }
 
 sub entry {
@@ -40,13 +42,13 @@ __DATA__
 ? if (Cirdan->context->route->name eq 'entry') {
     <div><?= $_{entry} ?></div>
 ? } else {
-    <form action="<?= path_for('post_entry') ?>" method="POST">
+    <form action="<?= Cirdan->router->path_for('post_entry') ?>" method="POST">
       <input type="text" name="text">
       <input type="submit">
     </form>
     <ul>
 ?   foreach (0 .. $#{$_{entries}}) {
-      <li><a href="<?= path_for('entry', $_) ?>"><?= $_{entries}[$_] ?></a></li>
+      <li><a href="<?= Cirdan->router->path_for('entry', $_) ?>"><?= $_{entries}[$_] ?></a></li>
 ?   }
 ? }
     </ul>

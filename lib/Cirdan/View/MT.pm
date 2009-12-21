@@ -33,7 +33,4 @@ sub render {
     $content;
 }
 
-# XXX
-*path_for = \&Cirdan::path_for;
-
 1;

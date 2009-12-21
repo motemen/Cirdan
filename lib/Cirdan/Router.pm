@@ -45,4 +45,12 @@ sub path_for {
     }
 }
 
+sub make_routing_function {
+    my ($self, $method) = @_;
+    return sub {
+        my ($path, $code) = @_;
+        $self->add($path, $method, $code);
+    };
+}
+
 1;
