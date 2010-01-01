@@ -1,6 +1,7 @@
 package Cirdan::Router::Entry;
 use Any::Moose;
 use URI;
+use URI::Escape qw(uri_unescape);
 
 has 'path', (
     is  => 'rw',
@@ -99,7 +100,7 @@ sub handles_path {
 
     my @matches;
     for (0 .. $#+) {
-        push @matches, substr($path, $-[$_], $+[$_] - $-[$_]);
+        push @matches, uri_unescape substr($path, $-[$_], $+[$_] - $-[$_]);
     }
 
     @matches;
