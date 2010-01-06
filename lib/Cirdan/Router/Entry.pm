@@ -1,7 +1,8 @@
 package Cirdan::Router::Entry;
 use Any::Moose;
 use URI;
-use URI::Escape qw(uri_unescape);
+use URI::Escape;
+use Encode;
 
 has 'path', (
     is  => 'rw',
@@ -117,13 +118,23 @@ sub make_path {
     }
 }
 
+sub dispatch {
+    my $self = shift;
+    $self->code->(@_);
+}
+
+sub _uri_escape {
+    my $string = shift;
+    Encode::is_utf8($string) ? uri_escape_utf8 $string : uri_escape $string;
+}
+
 sub _make_path_array {
     my ($self, @args) = @_;
 
     my $path = '';
     foreach (@{$self->path}) {
         if (ref $_) {
-            $path .= shift @args;
+            $path .= _uri_escape shift @args;
         } else {
             $path .= $_;
         }
@@ -136,7 +147,7 @@ sub _make_path_string {
 
     my $path = $self->path;
     while (@args) {
-        $path =~ s{\(.+?\)}{ shift @args }e;
+        $path =~ s{\(.+?\)}{ _uri_escape shift @args }e;
     }
     $path;
 }

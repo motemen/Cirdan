@@ -35,5 +35,6 @@ ok  $e4->handles_uri('http://localhost/bar');
 is_deeply [ $e5->handles_path('/foo/3') ], [ '/foo/3', '3' ];
 is_deeply [ $e6->handles_path('/w/%E3%81%86%E3%82%93%E3%81%93') ]->[1], 'うんこ';
 is $e5->make_path(5), '/foo/5';
+is $e6->make_path('#'), '/w/%23';
 
 done_testing;
