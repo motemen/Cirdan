@@ -2,6 +2,7 @@ package Cirdan;
 use strict;
 use warnings;
 use Cirdan::Router;
+use Cirdan::Router::Entry;
 use Cirdan::Context;
 use Cirdan::View;
 use Cirdan::Util::Response;
@@ -10,7 +11,7 @@ use UNIVERSAL::require;
 use Exporter::Lite ();
 
 our @EXPORT = (
-    qw(__PSGI__ routes),
+    qw(__PSGI__ routes before after),
     @Cirdan::Util::Response::EXPORT
 );
 
@@ -82,6 +83,16 @@ sub make_psgi_handler {
 
         $res;
     };
+}
+
+sub before (&) {
+    my $code  = shift;
+    Cirdan::Router::Entry->meta->add_before_method_modifier(dispatch => $code);
+}
+
+sub after (&) {
+    my $code  = shift;
+    Cirdan::Router::Entry->meta->add_after_method_modifier(dispatch => $code);
 }
 
 sub __PSGI__ {

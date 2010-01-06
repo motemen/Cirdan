@@ -13,9 +13,11 @@ has 'routes', (
 sub add {
     my ($self, $path, $method, $code) = @_;
 
-    push @{$self->routes}, Cirdan::Router::Entry->new(
+    push @{$self->routes}, my $entry = Cirdan::Router::Entry->new(
         path => $path, method => $method, code => $code,
     );
+
+    $entry;
 }
 
 sub dispatch {
@@ -26,7 +28,7 @@ sub dispatch {
         next unless $entry->handles_method($req->method);
         my (undef, @params) = $entry->handles_uri($req->uri) or next;
         Cirdan::Context->route($entry);
-        return $entry->code->($req, @params);
+        return $entry->dispatch($req, @params);
     }
 }
 
