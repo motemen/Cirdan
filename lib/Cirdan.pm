@@ -76,13 +76,16 @@ sub make_psgi_handler {
         my $req = $class->context->request = $class->request_class->new($env);
 
         my $res = $class->router->dispatch($req);
-        $res = OK $res unless ref $res eq 'ARRAY';
-
-        $class->_finalize_res_headers($res);
-        $class->context->clear;
-
-        $res;
+        $class->finalize_res($res);
     };
+}
+
+sub finalize_res {
+    my ($class, $res) = @_;
+    $res = OK $res unless ref $res;
+    $class->_finalize_res_headers($res) if ref $res eq 'ARRAY';
+    $class->context->clear;
+    $res;
 }
 
 sub before (&) {
