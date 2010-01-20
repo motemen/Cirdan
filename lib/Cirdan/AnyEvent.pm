@@ -8,7 +8,7 @@ use Exporter::Lite;
 
 require Cirdan;
 
-our @EXPORT_OK = qw(async_response);
+our @EXPORT = qw(async_response);
 
 sub async_response (&) {
     my $block = shift;

@@ -98,9 +98,14 @@ sub after (&) {
     Cirdan::Router::Entry->meta->add_after_method_modifier(dispatch => $code);
 }
 
-sub __PSGI__ {
-    __PACKAGE__->__compile;
-    __PACKAGE__->make_psgi_handler;
+sub psgi {
+    my $class = shift;
+    $class->__compile;
+    $class->make_psgi_handler;
+}
+
+sub __PSGI__ () {
+    __PACKAGE__->psgi;
 }
 
 1;

@@ -1,6 +1,5 @@
 use strict;
 use warnings;
-use Plack::Server::AnyEvent;
 
 use Coro;
 use Coro::LWP;
@@ -16,7 +15,8 @@ use Perl6::Say;
 use lib 'lib';
 use Cirdan;
 use Cirdan::View qw(mt json);
-use Cirdan::AnyEvent qw(async_response);
+use Cirdan::AnyEvent;
+use Cirdan::Plack;
 
 routes {
     POST '/download'    => *download;
@@ -106,7 +106,7 @@ sub default {
     mt \*DATA;
 }
 
-Plack::Server::AnyEvent->new(port => 30000)->run(__PSGI__);
+plackup AnyEvent => { port => 30000 };
 
 __DATA__
 ? local %_ = @_;
