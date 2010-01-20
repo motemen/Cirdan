@@ -36,7 +36,7 @@ has 'regexp', (
 
 has 'method_mapping', (
     is  => 'rw',
-    isa => 'HashRef',
+    isa => 'Maybe[HashRef]',
     lazy_build => 1,
 );
 
